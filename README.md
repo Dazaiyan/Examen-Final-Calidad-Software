@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Sistema de Gestión de Recursos Humanos
 
 Este es un sistema de gestión de recursos humanos desarrollado con Flask. Permite la gestión de empleados, departamentos y asignaciones.
@@ -81,3 +82,7 @@ python app.py
 - templates/: Carpeta que contiene las plantillas HTML.
 - static/: Carpeta para archivos estáticos como CSS y JavaScript.
 - requirements.txt: Archivo con las dependencias del proyecto.
+=======
+# Examen-Final-Calidad-Software
+Examen Final
+>>>>>>> 4e1f406f87e1733861a2366ee787ab9464f9ac27
