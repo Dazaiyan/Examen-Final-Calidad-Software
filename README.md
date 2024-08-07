@@ -1,88 +1,96 @@
-<<<<<<< HEAD
-# Sistema de Gestión de Recursos Humanos
+# Sistema de Gestión de Proyectos
 
-Este es un sistema de gestión de recursos humanos desarrollado con Flask. Permite la gestión de empleados, departamentos y asignaciones.
+Este es un sistema web para la gestión de proyectos, incluyendo funcionalidades de registro y login de usuarios, un dashboard personalizado para visualizar el estado de los proyectos, creación, edición y eliminación de proyectos, asignación de tareas y responsables, y generación de reportes de progreso.
 
 ## Requisitos
 
-- Python 3.x
+- Python 3.7+
 - MySQL
+- Virtualenv (recomendado)
 
 ## Instalación
 
-Sigue estos pasos para clonar y configurar el proyecto:
-
-1. **Clona este repositorio:**
+1. **Clonar el repositorio:**
 
    ```bash
-   git clone https://github.com/Dazaiyan/CS-Examen-RecursosHumanos.git
-   cd CS-Examen-RecursosHumanos
-   ```
+   git clone https://github.com/TU_USUARIO/TU_REPOSITORIO.git
+   cd TU_REPOSITORIO
 
-## Crea un entorno virtual e instala las dependencias:
-```
-  python -m venv venv
-  source venv/bin/activate  # En Windows usa `venv\Scripts\activate`
-  cd venv
-  pip install -r requirements.txt
-```
-## Configura las variables de entorno:
+## Crear un entorno virtual:
 
-- Crea un archivo .env en la raíz del proyecto con el siguiente contenido:
-
-```
-  SECRET_KEY=tu_clave_secreta
-MYSQL_HOST=localhost
-MYSQL_USER=tu_usuario
-MYSQL_PASSWORD=tu_contraseña
-MYSQL_DB=hr_system
+   ```bash
+   python -m venv venv
 ```
 
-## Configura la base de datos:
-
-- Asegúrate de tener una base de datos MySQL configurada con las siguientes tablas:
+## Activa el entorno 
 ```
-CREATE DATABASE hr_system;
+venv\Scripts\activate
+```
 
-USE hr_system;
+## Instalar las dependencias:
+```
+pip install -r requirements.txt
+```
 
-CREATE TABLE Empleados (
+## Configurar las variables de entorno:
+
+- SECRET_KEY=tu_clave_secreta
+- MYSQL_HOST=tu_host_mysql
+- MYSQL_USER=tu_usuario_mysql
+- MYSQL_PASSWORD=tu_contraseña_mysql
+- MYSQL_DB=tu_base_de_datos
+
+## Inicializar la base de datos:
+
+```
+CREATE DATABASE tu_base_de_datos;
+USE tu_base_de_datos;
+
+CREATE TABLE Users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    puesto VARCHAR(100),
-    salario DECIMAL(10, 2)
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE Departamentos (
+CREATE TABLE Proyectos (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    ubicacion VARCHAR(100)
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    estado VARCHAR(20)
 );
 
-CREATE TABLE Asignaciones (
+CREATE TABLE Tareas (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    empleado_id INT,
-    departamento_id INT,
-    fecha_asignacion DATE,
-    FOREIGN KEY (empleado_id) REFERENCES Empleados(id),
-    FOREIGN KEY (departamento_id) REFERENCES Departamentos(id)
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    responsable VARCHAR(100),
+    fecha_limite DATE,
+    estado VARCHAR(20),
+    proyecto_id INT,
+    FOREIGN KEY (proyecto_id) REFERENCES Proyectos(id)
 );
 ```
 
-## Ejecuta la aplicación:
+# Uso
+
+## Ejecutar la aplicación:
+
 ```
 python app.py
 ```
 
-# Uso
-- Accede a la aplicación en tu navegador en http://127.0.0.1:5000.
+## Abrir el navegador web y acceder a la aplicación:
+
+```
+http://127.0.0.1:5000/
+```
+
 
 # Estructura del Proyecto
-- app.py: El archivo principal de la aplicación Flask.
+- app.py: Archivo principal de la aplicación Flask.
 - templates/: Carpeta que contiene las plantillas HTML.
-- static/: Carpeta para archivos estáticos como CSS y JavaScript.
-- requirements.txt: Archivo con las dependencias del proyecto.
-=======
-# Examen-Final-Calidad-Software
-Examen Final
->>>>>>> 4e1f406f87e1733861a2366ee787ab9464f9ac27
+- static/: Carpeta que contiene los archivos estáticos (CSS, JS, imágenes).
+- requirements.txt: Archivo que contiene las dependencias del proyecto.
+- .env: Archivo que contiene las variables de entorno (no incluido en el repositorio).
