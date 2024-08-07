@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mt-4">
+    <h1>Asignación de Tareas</h1>
+    <ul class="list-group">
+        {% for proyecto in proyectos %}
+        <li class="list-group-item">
+            <h5>{{ proyecto[1] }}</h5>
+            <p>{{ proyecto[2] }}</p>
+            <a href="{{ url_for('tareas', proyecto_id=proyecto[0]) }}" class="btn btn-primary">Ver Tareas</a>
+            <a href="{{ url_for('nueva_tarea', proyecto_id=proyecto[0]) }}" class="btn btn-success">Agregar Tarea</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

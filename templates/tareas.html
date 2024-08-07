@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mt-4">
+    <h1>Tareas del Proyecto</h1>
+    <a href="{{ url_for('nueva_tarea', proyecto_id=proyecto_id) }}" class="btn btn-primary">Agregar Tarea</a>
+    <table class="table table-striped mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Responsable</th>
+                <th>Fecha Límite</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tarea in tareas %}
+            <tr>
+                <td>{{ tarea[0] }}</td>
+                <td>{{ tarea[1] }}</td>
+                <td>{{ tarea[2] }}</td>
+                <td>{{ tarea[3] }}</td>
+                <td>{{ tarea[4] }}</td>
+                <td>
+                    <a href="{{ url_for('editar_tarea', id=tarea[0]) }}" class="btn btn-info">Editar</a>
+                    <form action="{{ url_for('eliminar_tarea', id=tarea[0]) }}" method="post" style="display:inline-block;">
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

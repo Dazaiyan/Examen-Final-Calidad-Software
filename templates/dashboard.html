@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mt-4">
+    <h1>Dashboard</h1>
+    <div class="row">
+        {% for proyecto in proyectos %}
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm {{ 'bg-success' if proyecto[5] == 'activo' else 'bg-danger' }} text-white">
+                <div class="card-body">
+                    <h5 class="card-title">{{ proyecto[1] }}</h5>
+                    <p class="card-text">{{ proyecto[2] }}</p>
+                    <p class="card-text"><strong>Estado:</strong> {{ proyecto[5] }}</p>
+                    <p class="card-text"><strong>Fecha de Inicio:</strong> {{ proyecto[3] }}</p>
+                    <p class="card-text"><strong>Fecha de Fin:</strong> {{ proyecto[4] }}</p>
+                    <a href="{{ url_for('tareas', proyecto_id=proyecto[0]) }}" class="btn btn-light">Ver Tareas</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mt-4">
+    <h1>Editar Proyecto</h1>
+    <form method="post">
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ proyecto[1] }}" required>
+        </div>
+        <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" required>{{ proyecto[2] }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="fecha_inicio">Fecha de Inicio</label>
+            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ proyecto[3] }}" required>
+        </div>
+        <div class="form-group">
+            <label for="fecha_fin">Fecha de Fin</label>
+            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ proyecto[4] }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Actualizar Proyecto</button>
+        <a href="{{ url_for('proyectos') }}" class="btn btn-secondary">Volver</a>
+    </form>
+</div>
+{% endblock %}

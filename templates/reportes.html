@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mt-4">
+    <h1>Reportes de Progreso</h1>
+    {% for proyecto in proyectos %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">{{ proyecto[1] }}</h5>
+            <p class="card-text">{{ proyecto[2] }}</p>
+            <p class="card-text"><strong>Estado:</strong> {{ proyecto[5] }}</p>
+            <p class="card-text"><strong>Fecha de Inicio:</strong> {{ proyecto[3] }}</p>
+            <p class="card-text"><strong>Fecha de Fin:</strong> {{ proyecto[4] }}</p>
+            <ul>
+                {% for tarea in tareas if tarea[5] == proyecto[0] %}
+                <li>{{ tarea[1] }} - {{ tarea[3] }} ({{ tarea[4] }})</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

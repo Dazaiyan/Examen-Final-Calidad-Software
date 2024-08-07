@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="mt-4">
+    <h1>Gestión de Proyectos</h1>
+    <a href="{{ url_for('nuevo_proyecto') }}" class="btn btn-primary">Agregar Proyecto</a>
+    <table class="table table-striped mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Fecha de Inicio</th>
+                <th>Fecha de Fin</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proyecto in proyectos %}
+            <tr>
+                <td>{{ proyecto[0] }}</td>
+                <td>{{ proyecto[1] }}</td>
+                <td>{{ proyecto[2] }}</td>
+                <td>{{ proyecto[3] }}</td>
+                <td>{{ proyecto[4] }}</td>
+                <td>
+                    <a href="{{ url_for('editar_proyecto', id=proyecto[0]) }}" class="btn btn-info">Editar</a>
+                    <form action="{{ url_for('eliminar_proyecto', id=proyecto[0]) }}" method="post" style="display:inline-block;">
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

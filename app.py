@@ -21,8 +21,12 @@ mysql = MySQL(app)
 @app.route('/')
 def index():
     if 'loggedin' in session:
-        return redirect(url_for('empleados'))
-    return redirect(url_for('login'))
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM Proyectos")
+        proyectos = cur.fetchall()
+        cur.close()
+        return render_template('index.html', proyectos=proyectos)
+    return render_template('index.html')
 
 # Registro de usuarios
 @app.route('/register', methods=['GET', 'POST'])
@@ -57,7 +61,7 @@ def login():
         if user and check_password_hash(user[2], password):
             session['loggedin'] = True
             session['username'] = user[1]
-            return redirect(url_for('empleados'))
+            return redirect(url_for('dashboard'))
         else:
             flash('Nombre de usuario o contraseña incorrectos', 'danger')
     
@@ -71,227 +75,196 @@ def logout():
     flash('Sesión cerrada exitosamente', 'success')
     return redirect(url_for('login'))
 
-# Gestión de Empleados
-@app.route('/empleados')
-def empleados():
+#Dashboard
+@app.route('/dashboard')
+def dashboard():
     if 'loggedin' in session:
         cur = mysql.connection.cursor()
-        result_value = cur.execute("SELECT * FROM Empleados")
-        if result_value > 0:
-            empleados = cur.fetchall()
-            return render_template('empleados.html', empleados=empleados)
-        return render_template('empleados.html')
+        cur.execute("SELECT * FROM Proyectos")
+        proyectos = cur.fetchall()
+        
+        proyectos_activos = len([proyecto for proyecto in proyectos if proyecto[5] == 'activo'])
+        proyectos_inactivos = len([proyecto for proyecto in proyectos if proyecto[5] == 'inactivo'])
+        
+        cur.close()
+        return render_template('dashboard.html', proyectos=proyectos, proyectos_activos=proyectos_activos, proyectos_inactivos=proyectos_inactivos)
     return redirect(url_for('login'))
 
-@app.route('/empleados/nuevo', methods=['GET', 'POST'])
-def nuevo_empleado():
+# Gestión de Proyectos
+@app.route('/proyectos')
+def proyectos():
+    if 'loggedin' in session:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM Proyectos")
+        proyectos = cur.fetchall()
+        cur.close()
+        return render_template('proyectos.html', proyectos=proyectos)
+    return redirect(url_for('login'))
+
+@app.route('/proyectos/nuevo', methods=['GET', 'POST'])
+def nuevo_proyecto():
     if 'loggedin' in session:
         if request.method == 'POST':
-            empleado_details = request.form
-            nombre = empleado_details['nombre']
-            puesto = empleado_details['puesto']
-            salario = empleado_details['salario']
+            proyecto_details = request.form
+            nombre = proyecto_details['nombre']
+            descripcion = proyecto_details['descripcion']
+            fecha_inicio = proyecto_details['fecha_inicio']
+            fecha_fin = proyecto_details['fecha_fin']
+            estado = proyecto_details['estado']  # Asegurarse de que el estado se obtenga correctamente
 
             cur = mysql.connection.cursor()
-            cur.execute("INSERT INTO Empleados(nombre, puesto, salario) VALUES(%s, %s, %s)", (nombre, puesto, salario))
+            cur.execute("INSERT INTO Proyectos(nombre, descripcion, fecha_inicio, fecha_fin, estado) VALUES(%s, %s, %s, %s, %s)", (nombre, descripcion, fecha_inicio, fecha_fin, estado))
             mysql.connection.commit()
             cur.close()
-            flash('Empleado Agregado Satisfactoriamente', 'success')
-            return redirect(url_for('empleados'))
-        return render_template('nuevo_empleado.html')
+            flash('Proyecto Agregado Satisfactoriamente', 'success')
+            return redirect(url_for('proyectos'))
+        return render_template('nuevo_proyecto.html')
     return redirect(url_for('login'))
 
-@app.route('/empleados/editar/<int:id>', methods=['GET', 'POST'])
-def editar_empleado(id):
+@app.route('/proyectos/editar/<int:id>', methods=['GET', 'POST'])
+def editar_proyecto(id):
     if 'loggedin' in session:
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM Empleados WHERE id = %s", [id])
-        empleado = cur.fetchone()
+        cur.execute("SELECT * FROM Proyectos WHERE id = %s", [id])
+        proyecto = cur.fetchone()
 
         if request.method == 'POST':
-            empleado_details = request.form
-            nombre = empleado_details['nombre']
-            puesto = empleado_details['puesto']
-            salario = empleado_details['salario']
+            proyecto_details = request.form
+            nombre = proyecto_details['nombre']
+            descripcion = proyecto_details['descripcion']
+            fecha_inicio = proyecto_details['fecha_inicio']
+            fecha_fin = proyecto_details['fecha_fin']
+            estado = proyecto_details['estado']
 
             cur.execute("""
-                UPDATE Empleados
-                SET nombre = %s, puesto = %s, salario = %s
+                UPDATE Proyectos
+                SET nombre = %s, descripcion = %s, fecha_inicio = %s, fecha_fin = %s, estado = %s
                 WHERE id = %s
-            """, (nombre, puesto, salario, id))
+            """, (nombre, descripcion, fecha_inicio, fecha_fin, estado, id))
             mysql.connection.commit()
             cur.close()
-            flash('Empleado Actualizado Satisfactoriamente', 'success')
-            return redirect(url_for('empleados'))
+            flash('Proyecto Actualizado Satisfactoriamente', 'success')
+            return redirect(url_for('proyectos'))
 
-        return render_template('editar_empleado.html', empleado=empleado)
+        return render_template('editar_proyecto.html', proyecto=proyecto)
     return redirect(url_for('login'))
 
-@app.route('/empleados/eliminar/<int:id>', methods=['POST'])
-def eliminar_empleado(id):
+@app.route('/proyectos/eliminar/<int:id>', methods=['POST'])
+def eliminar_proyecto(id):
     if 'loggedin' in session:
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM Asignaciones WHERE empleado_id = %s", [id])
-        asignacion = cur.fetchone()
-        if asignacion:
-            flash('No se puede eliminar el empleado porque tiene asignaciones.', 'danger')
-        else:
-            cur.execute("DELETE FROM Empleados WHERE id = %s", [id])
-            mysql.connection.commit()
-            flash('Empleado Eliminado Satisfactoriamente', 'success')
-        cur.close()
-        return redirect(url_for('empleados'))
-    return redirect(url_for('login'))
-
-# Gestión de Departamentos
-@app.route('/departamentos')
-def departamentos():
-    if 'loggedin' in session:
-        cur = mysql.connection.cursor()
-        result_value = cur.execute("SELECT * FROM Departamentos")
-        if result_value > 0:
-            departamentos = cur.fetchall()
-            return render_template('departamentos.html', departamentos=departamentos)
-        return render_template('departamentos.html')
-    return redirect(url_for('login'))
-
-@app.route('/departamentos/nuevo', methods=['GET', 'POST'])
-def nuevo_departamento():
-    if 'loggedin' in session:
-        if request.method == 'POST':
-            departamento_details = request.form
-            nombre = departamento_details['nombre']
-            ubicacion = departamento_details['ubicacion']
-
-            cur = mysql.connection.cursor()
-            cur.execute("INSERT INTO Departamentos(nombre, ubicacion) VALUES(%s, %s)", (nombre, ubicacion))
-            mysql.connection.commit()
-            cur.close()
-            flash('Departamento Agregado Satisfactoriamente', 'success')
-            return redirect(url_for('departamentos'))
-        return render_template('nuevo_departamento.html')
-    return redirect(url_for('login'))
-
-@app.route('/departamentos/editar/<int:id>', methods=['GET', 'POST'])
-def editar_departamento(id):
-    if 'loggedin' in session:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM Departamentos WHERE id = %s", [id])
-        departamento = cur.fetchone()
-
-        if request.method == 'POST':
-            departamento_details = request.form
-            nombre = departamento_details['nombre']
-            ubicacion = departamento_details['ubicacion']
-
-            cur.execute("""
-                UPDATE Departamentos
-                SET nombre = %s, ubicacion = %s
-                WHERE id = %s
-            """, (nombre, ubicacion, id))
-            mysql.connection.commit()
-            cur.close()
-            flash('Departamento Actualizado Satisfactoriamente', 'success')
-            return redirect(url_for('departamentos'))
-
-        return render_template('editar_departamento.html', departamento=departamento)
-    return redirect(url_for('login'))
-
-@app.route('/departamentos/eliminar/<int:id>', methods=['POST'])
-def eliminar_departamento(id):
-    if 'loggedin' in session:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM Asignaciones WHERE departamento_id = %s", [id])
-        asignacion = cur.fetchone()
-        if asignacion:
-            flash('No se puede eliminar el departamento porque tiene asignaciones.', 'danger')
-        else:
-            cur.execute("DELETE FROM Departamentos WHERE id = %s", [id])
-            mysql.connection.commit()
-            flash('Departamento Eliminado Satisfactoriamente', 'success')
-        cur.close()
-        return redirect(url_for('departamentos'))
-    return redirect(url_for('login'))
-
-# Gestión de Asignaciones
-@app.route('/asignaciones')
-def asignaciones():
-    if 'loggedin' in session:
-        cur = mysql.connection.cursor()
-        result_value = cur.execute("SELECT * FROM Asignaciones")
-        if result_value > 0:
-            asignaciones = cur.fetchall()
-            return render_template('asignaciones.html', asignaciones=asignaciones)
-        return render_template('asignaciones.html')
-    return redirect(url_for('login'))
-
-@app.route('/asignaciones/nueva', methods=['GET', 'POST'])
-def nueva_asignacion():
-    if 'loggedin' in session:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT id, nombre FROM Empleados")
-        empleados = cur.fetchall()
-        cur.execute("SELECT id, nombre FROM Departamentos")
-        departamentos = cur.fetchall()
-
-        if request.method == 'POST':
-            asignacion_details = request.form
-            empleado_id = asignacion_details['empleado_id']
-            departamento_id = asignacion_details['departamento_id']
-            fecha_asignacion = asignacion_details['fecha_asignacion']
-
-            cur.execute("INSERT INTO Asignaciones(empleado_id, departamento_id, fecha_asignacion) VALUES(%s, %s, %s)", 
-                        (empleado_id, departamento_id, fecha_asignacion))
-            mysql.connection.commit()
-            cur.close()
-            flash('Asignación Agregada Satisfactoriamente', 'success')
-            return redirect(url_for('asignaciones'))
-
-        return render_template('nueva_asignacion.html', empleados=empleados, departamentos=departamentos)
-    return redirect(url_for('login'))
-
-@app.route('/asignaciones/editar/<int:id>', methods=['GET', 'POST'])
-def editar_asignacion(id):
-    if 'loggedin' in session:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM Asignaciones WHERE id = %s", [id])
-        asignacion = cur.fetchone()
-
-        cur.execute("SELECT id, nombre FROM Empleados")
-        empleados = cur.fetchall()
-
-        cur.execute("SELECT id, nombre FROM Departamentos")
-        departamentos = cur.fetchall()
-
-        if request.method == 'POST':
-            asignacion_details = request.form
-            empleado_id = asignacion_details['empleado_id']
-            departamento_id = asignacion_details['departamento_id']
-            fecha_asignacion = asignacion_details['fecha_asignacion']
-
-            cur.execute("""
-                UPDATE Asignaciones
-                SET empleado_id = %s, departamento_id = %s, fecha_asignacion = %s
-                WHERE id = %s
-            """, (empleado_id, departamento_id, fecha_asignacion, id))
-            mysql.connection.commit()
-            cur.close()
-            flash('Asignación Actualizada Satisfactoriamente', 'success')
-            return redirect(url_for('asignaciones'))
-
-        return render_template('editar_asignacion.html', asignacion=asignacion, empleados=empleados, departamentos=departamentos)
-    return redirect(url_for('login'))
-
-@app.route('/asignaciones/eliminar/<int:id>', methods=['POST'])
-def eliminar_asignacion(id):
-    if 'loggedin' in session:
-        cur = mysql.connection.cursor()
-        cur.execute("DELETE FROM Asignaciones WHERE id = %s", [id])
+        cur.execute("DELETE FROM Proyectos WHERE id = %s", [id])
         mysql.connection.commit()
         cur.close()
-        flash('Asignación Eliminada Satisfactoriamente', 'success')
-        return redirect(url_for('asignaciones'))
+        flash('Proyecto Eliminado Satisfactoriamente', 'success')
+        return redirect(url_for('proyectos'))
     return redirect(url_for('login'))
+
+# Gestión de Tareas
+@app.route('/tareas/<int:proyecto_id>')
+def tareas(proyecto_id):
+    if 'loggedin' in session:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM Tareas WHERE proyecto_id = %s", [proyecto_id])
+        tareas = cur.fetchall()
+        cur.close()
+        return render_template('tareas.html', tareas=tareas, proyecto_id=proyecto_id)
+    return redirect(url_for('login'))
+
+@app.route('/tareas_general')
+def tareas_general():
+    if 'loggedin' in session:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM Proyectos")
+        proyectos = cur.fetchall()
+        cur.close()
+        return render_template('tareas_general.html', proyectos=proyectos)
+    return redirect(url_for('login'))
+
+@app.route('/tareas/nueva/<int:proyecto_id>', methods=['GET', 'POST'])
+def nueva_tarea(proyecto_id):
+    if 'loggedin' in session:
+        if request.method == 'POST':
+            tarea_details = request.form
+            nombre = tarea_details['nombre']
+            descripcion = tarea_details['descripcion']
+            responsable = tarea_details['responsable']
+            fecha_limite = tarea_details['fecha_limite']
+
+            cur = mysql.connection.cursor()
+            cur.execute("INSERT INTO Tareas(nombre, descripcion, responsable, fecha_limite, proyecto_id) VALUES(%s, %s, %s, %s, %s)", (nombre, descripcion, responsable, fecha_limite, proyecto_id))
+            mysql.connection.commit()
+            cur.close()
+            flash('Tarea Agregada Satisfactoriamente', 'success')
+            return redirect(url_for('tareas', proyecto_id=proyecto_id))
+        return render_template('nueva_tarea.html', proyecto_id=proyecto_id)
+    return redirect(url_for('login'))
+
+@app.route('/tareas/editar/<int:id>', methods=['GET', 'POST'])
+def editar_tarea(id):
+    if 'loggedin' in session:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM Tareas WHERE id = %s", [id])
+        tarea = cur.fetchone()
+
+        if request.method == 'POST':
+            tarea_details = request.form
+            nombre = tarea_details['nombre']
+            descripcion = tarea_details['descripcion']
+            responsable = tarea_details['responsable']
+            fecha_limite = tarea_details['fecha_limite']
+
+            cur.execute("""
+                UPDATE Tareas
+                SET nombre = %s, descripcion = %s, responsable = %s, fecha_limite = %s
+                WHERE id = %s
+            """, (nombre, descripcion, responsable, fecha_limite, id))
+            mysql.connection.commit()
+            cur.close()
+            flash('Tarea Actualizada Satisfactoriamente', 'success')
+            return redirect(url_for('tareas', proyecto_id=tarea[5]))
+
+        return render_template('editar_tarea.html', tarea=tarea)
+    return redirect(url_for('login'))
+
+@app.route('/tareas/eliminar/<int:id>', methods=['POST'])
+def eliminar_tarea(id):
+    if 'loggedin' in session:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT proyecto_id FROM Tareas WHERE id = %s", [id])
+        proyecto_id = cur.fetchone()[0]
+        cur.execute("DELETE FROM Tareas WHERE id = %s", [id])
+        mysql.connection.commit()
+        cur.close()
+        flash('Tarea Eliminada Satisfactoriamente', 'success')
+        return redirect(url_for('tareas', proyecto_id=proyecto_id))
+    return redirect(url_for('login'))
+
+# Reportes
+@app.route('/reportes')
+def reportes():
+    if 'loggedin' in session:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM Proyectos")
+        proyectos = cur.fetchall()
+        
+        cur.execute("SELECT * FROM Tareas")
+        tareas = cur.fetchall()
+
+        # Calculamos el progreso de cada proyecto
+        proyectos_con_progreso = []
+        for proyecto in proyectos:
+            proyecto_id = proyecto[0]
+            tareas_del_proyecto = [tarea for tarea in tareas if tarea[5] == proyecto_id]
+            total_tareas = len(tareas_del_proyecto)
+            tareas_completadas = len([tarea for tarea in tareas_del_proyecto if tarea[6] == 'completada'])
+            progreso = (tareas_completadas / total_tareas) * 100 if total_tareas > 0 else 0
+            proyectos_con_progreso.append(proyecto + (progreso,))
+        
+        cur.close()
+        return render_template('reportes.html', proyectos=proyectos_con_progreso, tareas=tareas)
+    return redirect(url_for('login'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
